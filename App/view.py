@@ -26,6 +26,8 @@ import controller
 from DISClib.ADT import list as lt
 assert cf
 
+default_limit = 1000
+sys.setrecursionlimit(default_limit*10)
 
 """
 La vista se encarga de la interacción con el usuario
@@ -34,25 +36,153 @@ se hace la solicitud al controlador para ejecutar la
 operación solicitada
 """
 
+# Funciones para la impresión de resultados
+
+
+def printResults(ord_videos, sample):
+    """"
+    La función de printResults() nos permite imprimir
+    los videos según el tamaño del sample
+    la usamos para la impresión del primer
+    video en la carga del catálogo y para mostrar los
+    resultados del primer requerimiento
+    """
+    size = lt.size(ord_videos)
+    if size > sample:
+        print("Los primeros ", sample, " videos ordenados son:")
+        i = 1
+        while i <= sample:
+            video = lt.getElement(ord_videos, i)
+            print("\n")
+            print(
+                'Título: ' + str(video.get('title')) + ", " +
+                'Nombre del canal: ' + str(video.get('channel_title')) + ", " +
+                'Fue tendencia el día: ' + str(video.get('trending_date'))
+                + ", " +
+                'Visitas: ' + str(video.get('views')) + ", " +
+                'Likes: ' + str(video.get('likes')) + ", " +
+                'Dislikes: ' + str(video.get('dislikes')) + ", " +
+                'Fecha de publicación: ' + str(video.get('dislikes')))
+            i += 1
+
+
+def printResultsv2(ord_videos, sample):
+    printlist = []
+    i = 1
+    while len(printlist) <= (sample - 1):
+        element = lt.getElement(ord_videos, i)
+        title = str(element.get('title'))
+        if title not in printlist:
+            printlist.append(title)
+            print("\n")
+            print(
+                'Título: ' + str(element.get('title')) + ", " +
+                'Nombre del canal: ' + str(element.get('channel_title'))
+                + ", " + 'Visitas: ' + str(element.get('views')) + ", " +
+                'Likes: ' + str(element.get('likes')) + ", " +
+                'Dislikes: ' + str(element.get('dislikes')) + ", " +
+                'Tags: ' + str(element.get('tags')))
+        i += 1
+
+
+def printResultsv3(result):
+    print(
+            'Título: ' + str(result[0].get('title')) + ", " +
+            'Nombre del canal: ' + str(result[0].get('channel_title')) + ", " +
+            'País: ' + str(result[0].get('country')) + ", " +
+            'No. de días trending: ' + str(result[1]))
+
+
+# Menu de opciones
+
+
 def printMenu():
+    """
+    La función de PrintMenu() Muestra las cinco opciones que tiene el
+    usuario para la busqueda de Videos según los requerimientos
+    """
+    print("\n_______________________________________________________________")
     print("Bienvenido")
-    print("1- Cargar información en el catálogo")
-    print("2- ")
+    print("1- Inicializar catálogo")
+    print("2- Cargar información en el catálogo")
+    print(
+        "3- Conocer cuáles son los n videos con más views que son "
+        + " tendencia en un país, dada una categoría específica."
+        )
+    print(
+        "4- Conocer cuál es el video que más días ha sido" +
+        " trending para un país específico.")
+    print(
+        "5- Cuál es el video que más días ha sido" +
+        " trending para una categoría específica.")
+    print(
+        "6- Conocer cuáles son los n videos diferentes con" +
+        " más likes en un país con un tag específico.")
+    print("0- Salir")
 
-catalog = None
 
-"""
-Menu principal
-"""
+# Funciones de inicialización
+
+
+def initCatalog(list_type):
+    """
+    La función initCatalog() Inicializa el catalogo de Videos
+    retornando la función correspondiente del controller
+    """
+    return controller.initCatalog(list_type)
+
+
+def loadData(catalog):
+    """
+    La función LoadData() carga el catalogo de Videos en la
+    estructura de datos escogida retornando la función
+    correspondiente del controller
+    """
+    controller.loadData(catalog)
+
+
+# Menu principal
+
 while True:
     printMenu()
-    inputs = input('Seleccione una opción para continuar\n')
-    if int(inputs[0]) == 1:
-        print("Cargando información de los archivos ....")
+    print('\n')
+    inputs = input('Seleccione una opción para continuar: ')
 
-    elif int(inputs[0]) == 2:
-        pass
+    if str(inputs[0]) == '1':
+        print("Inicializando Catálogo ....")
+        x = controller.initCatalog()
+
+    elif str(inputs[0]) == "2":
+        print("\nCargando información de los archivos ....")
+        loadData(x)
+        print('Videos cargados: ' + str(controller.videosSize(x)))
+        print('Categorías cargadas: ' + str(controller.categoriesSize(x)))
+
+    elif str(inputs[0]) == "3":
+        pais = input("\nIngrese el país de referencia: ")
+        categoria = int(input('Ingrese la categoría de referencia: '))
+        n = input("Ingrese el número de videos que desea imprimir: ")
+        print("\nCargando ....")
+        result = controller.getVideosByCategoryAndCountry(x, categoria, pais)
+        printResults(result[1], int(n))
+
+    elif str(inputs[0]) == "4":
+        pais = input("Ingrese el país de referencia: ")
+        print("\nCargando ....")
+
+    elif str(inputs[0]) == "5":
+        categoria = int(input('Ingrese la categoría de referencia: '))
+        print("\nCargando ....")
+
+    elif str(inputs[0]) == "6":
+        pais = input("Ingrese el país de referencia: ")
+        tag = input('Ingrese el tag de referencia: ')
+        n = int(input("Ingrese el número de videos que desea imprimir: "))
+        print("\nCargando ....")
+
+    elif str(inputs[0]) == "0":
+        sys.exit(0)
 
     else:
-        sys.exit(0)
-sys.exit(0)
+        print("\n")
+        print("Opción No Válida")
