@@ -77,6 +77,7 @@ def loadCategories(catalog):
 
 # Funciones de consulta sobre el catálogo
 
+
 def videosSize(catalog):
     """
     Numero de videos cargados al catalogo

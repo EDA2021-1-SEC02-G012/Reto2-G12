@@ -58,11 +58,8 @@ def newCatalog():
     Retorna el catalogo inicializado.
     """
     catalog = {'videos': None,
-               'title': None,
-               'channel_title': None,
                'category_id': None,
-               'category': None,
-               'country': None}
+               'category': None}
 
     """
     Esta lista contiene todo los videos encontrados
@@ -79,14 +76,6 @@ def newCatalog():
     por los indices creados a continuacion.
     """
     catalog['category_id'] = lt.newList('SINGLE_LINKED')  # compareBookIds)
-
-    """
-    Esta lista contiene todo los videos encontrados
-    en los archivos de carga.  Estos videos no estan
-    ordenados por ningun criterio.  Son referenciados
-    por los indices creados a continuacion.
-    """
-    catalog['country'] = lt.newList('ARRAY_LIST')  # compareBookIds)
 
     """
     A continuación se crean indices por diferentes criterios
