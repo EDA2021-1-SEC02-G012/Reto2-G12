@@ -148,15 +148,38 @@ while True:
     print('\n')
     inputs = input('Seleccione una opción para continuar: ')
 
-    if str(inputs[0]) == '1':
+    if int(inputs[0]) == 1:
+        correct = True
+        while correct:
+            print(
+                'Ingrese el tipo de mapa a utilizar. Digite 1 si desea' +
+                ' PROBING, digite 2 si desea CHAINING.')
+            map_type_inp = int(input(''))
+            if map_type_inp == 1:
+                map_type = 'PROBING'
+                correct = False
+                break
+            elif map_type_inp == 2:
+                map_type = 'CHAINING'
+                correct = False
+                break
+            else:
+                print('Digite un número válido.')
+        print(
+            'Ingrese el factor de carga. ' +
+            '(Utilice el punto como separador decimal): ')
+        load_factor = float(
+            input(''))
         print("Inicializando Catálogo ....")
-        x = controller.initCatalog()
+        x = controller.initCatalog(map_type, load_factor)
 
     elif str(inputs[0]) == "2":
         print("\nCargando información de los archivos ....")
-        loadData(x)
+        answer = controller.loadData(x)
         print('Videos cargados: ' + str(controller.videosSize(x)))
         print('Categorías cargadas: ' + str(controller.categoriesSize(x)))
+        print("Tiempo [ms]: ", f"{answer[0]:.3f}", "  ||  ",
+              "Memoria [kB]: ", f"{answer[1]:.3f}")
 
     elif str(inputs[0]) == "3":
         pais = input("\nIngrese el país de referencia: ")

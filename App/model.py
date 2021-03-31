@@ -42,7 +42,7 @@ los mismos.
 # Construccion de modelos
 
 
-def newCatalog():
+def newCatalog(map_type, load_factor):
     """ Inicializa el catálogo de videos
 
     Crea una lista vacia para guardar todos los videos
@@ -67,7 +67,7 @@ def newCatalog():
     ordenados por ningun criterio.  Son referenciados
     por los indices creados a continuacion.
     """
-    catalog['videos'] = lt.newList('SINGLE_LINKED')  # compareBookIds)
+    catalog['videos'] = lt.newList('SINGLE_LINKED')
 
     """
     Esta lista contiene todo los videos encontrados
@@ -75,7 +75,7 @@ def newCatalog():
     ordenados por ningun criterio.  Son referenciados
     por los indices creados a continuacion.
     """
-    catalog['category_id'] = lt.newList('SINGLE_LINKED')  # compareBookIds)
+    catalog['category_id'] = lt.newList('SINGLE_LINKED')
 
     """
     A continuación se crean indices por diferentes criterios
@@ -89,8 +89,8 @@ def newCatalog():
     """
     catalog['category'] = mp.newMap(
         40,
-        maptype='PROBING',
-        loadfactor=0.5)  # comparefunction=compareTagNames)
+        maptype=map_type,
+        loadfactor=load_factor)
 
     return catalog
 
@@ -161,19 +161,29 @@ def newCountry(country_name):
 
 # Funciones de consulta
 
-
-def getVideosByCountry(catalog, country):
+def getVideosByCriteriaList(catalog, criteria, x):
     """
-    La función de getVideosByCountry() filtra los videos por un país
-    específico
+    La función de getVideosByCriteriaList() filtra los videos por un
+    criterio específico dado un x. El catálogo debe ser una lista.
     """
     listaretorno = lt.newList("ARRAY_LIST")
     for element in lt.iterator(catalog):
-        nombre_pais = element.get('country')
-        if nombre_pais == country:
+        nombre_pais = element.get(criteria)
+        if nombre_pais == x:
             lt.addLast(listaretorno, element)
 
     return listaretorno
+
+
+def getVideosByCriteriaMap(catalog, criteria, key):
+    """
+    La función de getVideosByCriteriaMap() filtra los videos por un
+    criterio específico dado un x. El catálogo debe ser un mapa.
+    """
+    values = catalog[criteria]
+    entry = mp.get(values, str(key))
+    result = me.getValue(entry)
+    return result
 
 
 def getVideosByCategory(catalog, catid):
@@ -184,8 +194,9 @@ def getVideosByCategory(catalog, catid):
 
 
 def getVideosByCategoryAndCountry(catalog, category, country):
-    sublist = getVideosByCategory(catalog, category).get('videos')
-    sublist2 = getVideosByCountry(sublist, country)
+    sublist = getVideosByCriteriaMap(
+        catalog, 'category', category).get('videos')
+    sublist2 = getVideosByCriteriaList(sublist, 'country', country)
     return sortVideos(sublist2, lt.size(sublist2), ms, cmpVideosByViews)
 
 
