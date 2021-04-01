@@ -70,10 +70,7 @@ def newCatalog(map_type, load_factor):
     catalog['videos'] = lt.newList('SINGLE_LINKED')
 
     """
-    Esta lista contiene todo los videos encontrados
-    en los archivos de carga.  Estos videos no estan
-    ordenados por ningun criterio.  Son referenciados
-    por los indices creados a continuacion.
+    Esta lista contiene las categorías
     """
     catalog['category_id'] = lt.newList('SINGLE_LINKED')
 
@@ -92,6 +89,14 @@ def newCatalog(map_type, load_factor):
         maptype=map_type,
         loadfactor=load_factor)
 
+    """
+    Este indice crea un map cuya llave es el país del video
+    """
+    catalog['country'] = mp.newMap(
+        20,
+        maptype=map_type,
+        loadfactor=load_factor)
+
     return catalog
 
 
@@ -101,6 +106,7 @@ def newCatalog(map_type, load_factor):
 def addVideo(catalog, video):
     lt.addLast(catalog['videos'], video)
     addCategoryFORMAP(catalog, video['category_id'], video)
+    addCountryFORMAP(catalog, video['country'], video)
 
 
 def addCategory(catalog, category):
@@ -124,25 +130,22 @@ def addCategoryFORMAP(catalog, c_id, video):
     lt.addLast(category['videos'], video)
 
 
-def addVideoCountry(catalog, country_name, video):
-    """
-    La función de addVideoCountry() añade un video al catálogo
-    en catalog["country"]
-    """
+def addCountryFORMAP(catalog, country_name, video):
     countries = catalog['country']
-    poscountry = lt.isPresent(countries, country_name)
-    if poscountry > 0:
-        country = lt.getElement(countries, poscountry)
+    existcountry = mp.contains(countries, country_name)
+    if existcountry:
+        entry = mp.get(countries, country_name)
+        country = me.getValue(entry)
     else:
         country = newCountry(country_name)
-        lt.addLast(countries, country)
-    lt.addLast(country['video'], video)
+        mp.put(countries, country_name, country)
+    lt.addLast(country['videos'], video)
 
 
 def newCategory(c_id):
     category = {"c_id": "", "videos": None}
     category['c_id'] = c_id
-    category['videos'] = lt.newList('SINGLE_LINKED', None)
+    category['videos'] = lt.newList('ARRAY_LIST', None)
     return category
 
 
@@ -151,9 +154,9 @@ def newCountry(country_name):
     La función de newCountry() crea una nueva estructura para
     modelar los videos a partir de los paises
     """
-    country = {'country_name': "", "video": None}
+    country = {'country_name': "", "videos": None}
     country['country_name'] = country_name
-    country['video'] = lt.newList('ARRAY_LIST')
+    country['videos'] = lt.newList('ARRAY_LIST', None)
     return country
 
 
@@ -186,18 +189,32 @@ def getVideosByCriteriaMap(catalog, criteria, key):
     return result
 
 
-def getVideosByCategory(catalog, catid):
-    categories = catalog['category']
-    entry = mp.get(categories, str(catid))
-    category = me.getValue(entry)
-    return category
-
-
 def getVideosByCategoryAndCountry(catalog, category, country):
     sublist = getVideosByCriteriaMap(
         catalog, 'category', category).get('videos')
     sublist2 = getVideosByCriteriaList(sublist, 'country', country)
     return sortVideos(sublist2, lt.size(sublist2), ms, cmpVideosByViews)
+
+
+def getMostTrendingDaysByTitle(videos):
+    ids = {}
+    pos = {}
+    i = 1
+
+    while i <= lt.size(videos):
+        video_id = lt.getElement(videos, i).get('video_id')
+
+        if video_id in ids:
+            ids[video_id] += 1
+        else:
+            ids[video_id] = 1
+            pos[video_id] = i
+        i += 1
+
+    video = max(ids, key=ids.get)
+    result = lt.getElement(videos, pos[video]) 
+
+    return (result, ids[video])
 
 
 def videosSize(catalog):

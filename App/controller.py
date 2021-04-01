@@ -21,7 +21,6 @@
  """
 
 import config as cf
-from DISClib.ADT import list as lt
 import model
 import csv
 import time
@@ -109,57 +108,19 @@ def categoriesSize(catalog):
     return model.categoriesSize(catalog)
 
 
+def getVideosByCountry(catalog, country):
+    return model.getVideosByCriteriaMap(catalog, 'country', country)
+
+
+def getMostTrendingDaysByTitle(catalog):
+    return model.getMostTrendingDaysByTitle(catalog)
+
+
 def getVideosByCategoryAndCountry(catalog, category, country):
     '''
     Retorna los videos dado un país y categoría específicos
     '''
     return model.getVideosByCategoryAndCountry(catalog, category, country)
-
-
-def getVideosByCountryAndTag(catalog, tag, country):
-    '''
-    Retorna los videos dado un país y tag específicos
-    '''
-    return model.getVideosByCountryAndTag(catalog, tag, country)
-
-
-def getVideoMasTrendingByCategory(catalog, categoria):
-    '''
-    Retorna el video que fue más tiempo trending por categoría
-    '''
-    return model.VideoMasTrendingCategoria(catalog, categoria)
-
-
-def getVideosByCountry(catalog, country):
-    '''
-    Retorna los videos dado un país específico
-    '''
-    return model.getVideosByCountry(catalog, country)
-
-
-def getVideosByCategory(catalog, categoria):
-    '''
-    Retorna los videos dado una categoría específica
-    '''
-    return model.getVideosByCategory(catalog, categoria)
-
-
-def getMostTrendingDays(catalog):
-    '''
-    Retorna el video que fue más tiempo trending
-    '''
-    return model.getMostTrendingDaysByTitle(catalog)
-
-
-def getVideosByTitleAndCategory(catalog, categoria, country):
-    '''
-    Retorna los videos dado un país y categoría específicos
-    '''
-    result1 = model.getVideosByCategoryAndCountry(
-                catalog, categoria, country)
-    result = model.sortVideos(
-                result1, lt.size(result1), 'ms', 'cmpVideosByViews')
-    return result
 
 
 # Funciones de consulta sobre el catálogo EJEMPLO GOODREADS
