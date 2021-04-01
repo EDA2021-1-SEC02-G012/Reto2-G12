@@ -196,7 +196,7 @@ def getVideosByCategoryAndCountry(catalog, category, country):
     return sortVideos(sublist2, lt.size(sublist2), ms, cmpVideosByViews)
 
 
-def getMostTrendingDaysByTitle(videos):
+def getMostTrendingDaysByID(videos):
     ids = {}
     pos = {}
     i = 1
@@ -212,7 +212,7 @@ def getMostTrendingDaysByTitle(videos):
         i += 1
 
     video = max(ids, key=ids.get)
-    result = lt.getElement(videos, pos[video]) 
+    result = lt.getElement(videos, pos[video])
 
     return (result, ids[video])
 

@@ -112,8 +112,8 @@ def getVideosByCountry(catalog, country):
     return model.getVideosByCriteriaMap(catalog, 'country', country)
 
 
-def getMostTrendingDaysByTitle(catalog):
-    return model.getMostTrendingDaysByTitle(catalog)
+def getMostTrendingDaysByID(catalog):
+    return model.getMostTrendingDaysByID(catalog)
 
 
 def getVideosByCategoryAndCountry(catalog, category, country):

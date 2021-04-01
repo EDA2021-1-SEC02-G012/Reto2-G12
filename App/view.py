@@ -193,7 +193,8 @@ while True:
         pais = input("Ingrese el país de referencia: ")
         print("\nCargando ....")
         videos_filtrados = controller.getVideosByCountry(x, pais)
-        result = controller.getMostTrendingDaysByTitle(videos_filtrados.get('videos'))
+        result = controller.getMostTrendingDaysByID(videos_filtrados.get(
+            'videos'))
         printResultsv3(result)
 
     elif str(inputs[0]) == "5":
