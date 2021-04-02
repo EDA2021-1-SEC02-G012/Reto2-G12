@@ -67,12 +67,12 @@ def newCatalog(map_type, load_factor):
     ordenados por ningun criterio.  Son referenciados
     por los indices creados a continuacion.
     """
-    catalog['videos'] = lt.newList('SINGLE_LINKED')
+    catalog['videos'] = lt.newList('ARRAY_LIST')
 
     """
     Esta lista contiene las categorías
     """
-    catalog['category_id'] = lt.newList('SINGLE_LINKED')
+    catalog['category_id'] = lt.newList('ARRAY_LIST')
 
     """
     A continuación se crean indices por diferentes criterios
@@ -197,24 +197,45 @@ def getVideosByCategoryAndCountry(catalog, category, country):
 
 
 def getMostTrendingDaysByID(videos):
-    ids = {}
-    pos = {}
+    ids = mp.newMap(
+        200,
+        maptype='PROBING',
+        loadfactor= 0.8)
+    pos = mp.newMap(
+        200,
+        maptype='PROBING',
+        loadfactor= 0.8)
+    ids_list = lt.newList('ARRAY_LIST')
+
     i = 1
 
     while i <= lt.size(videos):
         video_id = lt.getElement(videos, i).get('video_id')
 
-        if video_id in ids:
-            ids[video_id] += 1
+        if video_id in ids_list:
+            n = mp.get(ids, video_id)
+            n += 1
+            mp.put(ids, video_id, n)
         else:
-            ids[video_id] = 1
-            pos[video_id] = i
+            mp.put(ids, video_id, 1)
+            mp.put(pos, video_id, i)
         i += 1
+    
+    repeticiones = mp.valueSet(ids)
+    mayor = max(repeticiones)
+    for each_id in ids_list: 
+        Papi_juancho = mp.get(ids, each_id)
+        if Papi_juancho == mayor: 
+            id_mayor = each_id
+            break 
+        else: 
+            mayor = mayor 
 
-    video = max(ids, key=ids.get)
-    result = lt.getElement(videos, pos[video])
+    position = mp.get(pos, id_mayor)
+    repetitions = mp.get(ids, id_mayor)
+    result = lt.getElement(videos, position)
 
-    return (result, ids[video])
+    return (result, repetitions)
 
 
 def videosSize(catalog):
