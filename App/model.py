@@ -200,11 +200,11 @@ def getMostTrendingDaysByID(videos):
     ids = mp.newMap(
         200,
         maptype='PROBING',
-        loadfactor= 0.8)
+        loadfactor=0.8)
     pos = mp.newMap(
         200,
         maptype='PROBING',
-        loadfactor= 0.8)
+        loadfactor=0.8)
     ids_list = lt.newList('ARRAY_LIST')
 
     i = 1
@@ -220,16 +220,17 @@ def getMostTrendingDaysByID(videos):
             mp.put(ids, video_id, 1)
             mp.put(pos, video_id, i)
         i += 1
-    
+
     repeticiones = mp.valueSet(ids)
     mayor = max(repeticiones)
-    for each_id in ids_list: 
+
+    for each_id in ids_list:
         Papi_juancho = mp.get(ids, each_id)
-        if Papi_juancho == mayor: 
+        if Papi_juancho == mayor:
             id_mayor = each_id
-            break 
-        else: 
-            mayor = mayor 
+            break
+        else:
+            mayor = mayor
 
     position = mp.get(pos, id_mayor)
     repetitions = mp.get(ids, id_mayor)
