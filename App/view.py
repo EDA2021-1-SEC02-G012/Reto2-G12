@@ -205,12 +205,22 @@ while True:
             'videos'))
         printResultsv3(result)
 
-
     elif str(inputs[0]) == "6":
         pais = input("Ingrese el país de referencia: ")
         tag = input('Ingrese el tag de referencia: ')
         n = int(input("Ingrese el número de videos que desea imprimir: "))
         print("\nCargando ....")
+
+        result = controller.getVideosByCountryAndTag(
+             x, tag, pais)
+
+        print(
+            "Para la muestra de",
+            lt.size(x['country']),
+            "elementos, el tiempo (mseg) es:",
+            str(result[0]))
+
+        printResultsv2(result[1], n)
 
     elif str(inputs[0]) == "0":
         sys.exit(0)

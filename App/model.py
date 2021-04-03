@@ -59,7 +59,8 @@ def newCatalog(map_type, load_factor):
     """
     catalog = {'videos': None,
                'category_id': None,
-               'category': None}
+               'category': None,
+               'country': None}
 
     """
     Esta lista contiene todo los videos encontrados
@@ -306,6 +307,39 @@ def getMostTrendingDaysByID(videos):
         mayor_titulo = elemento
         mayor = i
     return (mayor_titulo, mayor)
+
+
+def getVideosByCountryAndTag(catalog, tag, country):
+    """
+    La función de getVideosByCountryAndTag() filtra los videos por un país
+    y tag específico
+    """
+    sublist = getVideosByCriteriaMap(catalog, 'country', country).get('videos')
+    sublist2 = getVideosByTag(sublist, tag)
+    sorted_list = sortVideos(
+        sublist2, int(lt.size(sublist2)), 'comparelikes')
+    return sorted_list
+
+
+def getVideosByTag(videos, tag):
+    """
+    La función de getVideosByTag() filtra los videos por un tag
+    específico
+    """
+    lista = lt.newList('ARRAY_LIST')
+    i = 1
+
+    while i <= lt.size(videos):
+        c_tags = lt.getElement(videos, i).get('tags')
+        tagpresence = tag in c_tags
+
+        if tagpresence:
+            element = lt.getElement(videos, i)
+            lt.addLast(lista, element)
+
+        i += 1
+
+    return lista
 
 
 def videosSize(catalog):
