@@ -200,6 +200,11 @@ while True:
     elif str(inputs[0]) == "5":
         categoria = int(input('Ingrese la categoría de referencia: '))
         print("\nCargando ....")
+        videos_filtrados = controller.getVideosByCategory(x, categoria)
+        result = controller.getMostTrendingDaysByID(videos_filtrados.get(
+            'videos'))
+        printResultsv3(result)
+
 
     elif str(inputs[0]) == "6":
         pais = input("Ingrese el país de referencia: ")
