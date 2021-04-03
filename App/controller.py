@@ -25,6 +25,7 @@ import model
 import csv
 import time
 import tracemalloc
+from DISClib.ADT import list as lt
 
 """
 El controlador se encarga de mediar entre la vista y el modelo.
@@ -113,7 +114,10 @@ def getVideosByCountry(catalog, country):
 
 
 def getMostTrendingDaysByID(catalog):
-    return model.getMostTrendingDaysByID(catalog)
+    sorted_videos = model.sortVideos(
+        catalog, lt.size(catalog), 'comparetitles')
+    result = model.getMostTrendingDaysByID(sorted_videos[1])
+    return result
 
 
 def getVideosByCategoryAndCountry(catalog, category, country):

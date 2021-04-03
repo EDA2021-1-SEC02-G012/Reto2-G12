@@ -193,16 +193,16 @@ def getVideosByCategoryAndCountry(catalog, category, country):
     sublist = getVideosByCriteriaMap(
         catalog, 'category', category).get('videos')
     sublist2 = getVideosByCriteriaList(sublist, 'country', country)
-    return sortVideos(sublist2, lt.size(sublist2), ms, cmpVideosByViews)
+    return sortVideos(sublist2, lt.size(sublist2), 'cmpVideosByViews')
 
 
-def getMostTrendingDaysByID(videos):
+def getMostTrendingDaysByIDv1(videos):
     ids = mp.newMap(
-        200,
+        500,
         maptype='PROBING',
         loadfactor=0.8)
     pos = mp.newMap(
-        200,
+        500,
         maptype='PROBING',
         loadfactor=0.8)
     ids_list = lt.newList('ARRAY_LIST')
@@ -211,32 +211,101 @@ def getMostTrendingDaysByID(videos):
 
     while i <= lt.size(videos):
         video_id = lt.getElement(videos, i).get('video_id')
+        presence = lt.isPresent(ids_list, video_id) != 0
 
-        if video_id in ids_list:
-            n = mp.get(ids, video_id)
+        if presence:
+            n = int(mp.get(ids, video_id).get('value'))
             n += 1
             mp.put(ids, video_id, n)
         else:
             mp.put(ids, video_id, 1)
             mp.put(pos, video_id, i)
+            lt.addLast(ids_list, video_id)
         i += 1
 
-    repeticiones = mp.valueSet(ids)
-    mayor = max(repeticiones)
+    mayor = video_id
+    repeticiones_mayor = int(mp.get(ids, mayor).get('value'))
 
-    for each_id in ids_list:
-        Papi_juancho = mp.get(ids, each_id)
-        if Papi_juancho == mayor:
-            id_mayor = each_id
-            break
-        else:
-            mayor = mayor
+    for each_id in lt.iterator(ids_list):
+        papi_juancho = int(mp.get(ids, each_id).get('value'))
+        if papi_juancho > repeticiones_mayor:
+            mayor = each_id
+            repeticiones_mayor = papi_juancho
 
-    position = mp.get(pos, id_mayor)
-    repetitions = mp.get(ids, id_mayor)
+    position = mp.get(pos, mayor).get('value')
+    repetitions = mp.get(ids, mayor).get('value')
     result = lt.getElement(videos, position)
 
     return (result, repetitions)
+
+
+def getMostTrendingDaysByIDv2(videos):
+    ids = mp.newMap(
+        500,
+        maptype='PROBING',
+        loadfactor=0.8)
+    pos = mp.newMap(
+        500,
+        maptype='PROBING',
+        loadfactor=0.8)
+    ids_list = []
+
+    i = 1
+
+    while i <= lt.size(videos):
+        video_id = lt.getElement(videos, i).get('video_id')
+        presence = video_id in ids_list
+
+        if presence:
+            n = int(mp.get(ids, video_id).get('value'))
+            n += 1
+            mp.put(ids, video_id, n)
+        else:
+            mp.put(ids, video_id, 1)
+            mp.put(pos, video_id, i)
+            ids_list.append(video_id)
+        i += 1
+
+    mayor = video_id
+    repeticiones_mayor = int(mp.get(ids, mayor).get('value'))
+
+    for each_id in ids_list:
+        papi_juancho = int(mp.get(ids, each_id).get('value'))
+        if papi_juancho > repeticiones_mayor:
+            mayor = each_id
+            repeticiones_mayor = papi_juancho
+
+    position = mp.get(pos, mayor).get('value')
+    repetitions = mp.get(ids, mayor).get('value')
+    result = lt.getElement(videos, position)
+
+    return (result, repetitions)
+
+
+def getMostTrendingDaysByID(videos):
+    """
+    La función de  getMostTrendingDaysByTitle itera la lista y devuelve el
+    elemento que más se repite
+    """
+    elemento = lt.firstElement(videos)
+    mayor_titulo = None
+    mayor = 0
+    i = 0
+
+    for video in lt.iterator(videos):
+        if video['video_id'] == elemento['video_id']:
+            i += 1
+        else:
+            if i > mayor:
+                mayor_titulo = elemento
+                mayor = i
+            i = 1
+            elemento = video
+
+    if i > mayor:
+        mayor_titulo = elemento
+        mayor = i
+    return (mayor_titulo, mayor)
 
 
 def videosSize(catalog):
@@ -262,10 +331,26 @@ def cmpVideosByViews(video1, video2) -> bool:
     """
     return (float(video1['views']) > float(video2['views']))
 
+
+def comparelikes(video1, video2):
+    """
+    La función de comparelikes() retorna True or False si dados los likes
+    de un video, este es mayor o menor a los likes de otro video
+    """
+    return (float(video1['likes'])) > (float(video2['likes']))
+
+
+def comparetitles(video1, video2):
+    """
+    La función de comparetitles() retorna True or False si el título de un
+    video es mayor al de otro video ordenando alfabéticamente
+    """
+    return (video1['title']) > (video2['title'])
+
 # Funciones de ordenamiento
 
 
-def sortVideos(catalog, size, sort_type, cmp):
+def sortVideos(catalog, size, cmp):
     """
     La Función sortVideos() la usamos en varios requerimientos por la necesidad
     de tener la información organizada. Por esto mismo, la función cuenta con
@@ -278,7 +363,12 @@ def sortVideos(catalog, size, sort_type, cmp):
     sub_list = sub_list.copy()
     start_time = time.process_time()
 
-    sorted_list = ms.sort(sub_list, cmp)
+    if cmp == 'cmpVideosByViews':
+        sorted_list = ms.sort(sub_list, cmpVideosByViews)
+    if cmp == 'comparetitles':
+        sorted_list = ms.sort(sub_list, comparetitles)
+    if cmp == 'comparelikes':
+        sorted_list = ms.sort(sub_list, comparelikes)
 
     stop_time = time.process_time()
     elapsed_time_mseg = (stop_time - start_time)*1000
