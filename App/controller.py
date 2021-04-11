@@ -90,7 +90,6 @@ def loadCategories(catalog):
         open(categoriesfile, encoding='utf-8'), delimiter='\t')
     for category in input_file:
         model.addCategory(catalog, category)
-    print(catalog['category_id'])
 
 
 # Funciones de consulta sobre el catálogo
