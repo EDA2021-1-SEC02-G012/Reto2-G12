@@ -213,7 +213,8 @@ while True:
 
     elif str(inputs[0]) == "3":
         pais = input("\nIngrese el país de referencia: ")
-        categoria = int(input('Ingrese la categoría de referencia: '))
+        categoria = int(
+            input('Ingrese el código la categoría de referencia: '))
         n = input("Ingrese el número de videos que desea imprimir: ")
         print("\nCargando ....")
         result = controller.getVideosByCategoryAndCountry(x, categoria, pais)
@@ -228,7 +229,8 @@ while True:
         printResultsv3(result)
 
     elif str(inputs[0]) == "5":
-        categoria = int(input('Ingrese la categoría de referencia: '))
+        categoria = int(
+            input('Ingrese el código la categoría de referencia: '))
         print("\nCargando ....")
         videos_filtrados = controller.getVideosByCategory(x, categoria)
         result = controller.getMostTrendingDaysByID(videos_filtrados.get(
