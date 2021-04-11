@@ -83,7 +83,7 @@ def newCatalog():
     Este indice crea un map cuya llave es la categoría del video
     """
     catalog['category'] = mp.newMap(
-        20,
+        40,
         maptype='PROBING',
         loadfactor=0.5)
 
@@ -333,49 +333,6 @@ def sortVideos(catalog, size, cmp):
 # Funciones que no se utilizan
 
 '''
-def getMostTrendingDaysByIDv2(videos):
-    ids = mp.newMap(
-        500,
-        maptype='PROBING',
-        loadfactor=0.8)
-    pos = mp.newMap(
-        500,
-        maptype='PROBING',
-        loadfactor=0.8)
-    ids_list = []
-
-    i = 1
-
-    while i <= lt.size(videos):
-        video_id = lt.getElement(videos, i).get('video_id')
-        presence = video_id in ids_list
-
-        if presence:
-            n = int(mp.get(ids, video_id).get('value'))
-            n += 1
-            mp.put(ids, video_id, n)
-        else:
-            mp.put(ids, video_id, 1)
-            mp.put(pos, video_id, i)
-            ids_list.append(video_id)
-        i += 1
-
-    mayor = video_id
-    repeticiones_mayor = int(mp.get(ids, mayor).get('value'))
-
-    for each_id in ids_list:
-        papi_juancho = int(mp.get(ids, each_id).get('value'))
-        if papi_juancho > repeticiones_mayor:
-            mayor = each_id
-            repeticiones_mayor = papi_juancho
-
-    position = mp.get(pos, mayor).get('value')
-    repetitions = mp.get(ids, mayor).get('value')
-    result = lt.getElement(videos, position)
-
-    return (result, repetitions)
-
-
 def getMostTrendingDaysByIDv1(videos):
     ids = mp.newMap(
         500,
@@ -405,12 +362,14 @@ def getMostTrendingDaysByIDv1(videos):
 
     mayor = video_id
     repeticiones_mayor = int(mp.get(ids, mayor).get('value'))
+    mayor = video_id
+    repeticiones_mayor = int(mp.get(ids, mayor).get('value'))
 
-    for each_id in lt.iterator(ids_list):
-        papi_juancho = int(mp.get(ids, each_id).get('value'))
-        if papi_juancho > repeticiones_mayor:
+    for each_id in ids_list:
+        repetitions = int(mp.get(ids, each_id).get('value'))
+        if repetitions > repeticiones_mayor:
             mayor = each_id
-            repeticiones_mayor = papi_juancho
+            repeticiones_mayor = repetitions
 
     position = mp.get(pos, mayor).get('value')
     repetitions = mp.get(ids, mayor).get('value')
