@@ -39,21 +39,18 @@ El catálogo tendrá dos listas, una para los videos, otra para las categorias d
 los mismos.
 """
 
-# Construccion de modelos
+# Construcción de modelos
 
 
-def newCatalog(map_type, load_factor):
+def newCatalog():
     """ Inicializa el catálogo de videos
 
-    Crea una lista vacia para guardar todos los videos
+    Crea dos listas vacia para guardar todos los videos
+    y las categorías
 
     Se crean indices (Maps) por los siguientes criterios:
-    Título
-    Nombre del canal
     Categoría
-    Tags
-    Views
-    Likes
+    País
 
     Retorna el catalogo inicializado.
     """
@@ -86,28 +83,32 @@ def newCatalog(map_type, load_factor):
     Este indice crea un map cuya llave es la categoría del video
     """
     catalog['category'] = mp.newMap(
-        40,
-        maptype=map_type,
-        loadfactor=load_factor)
+        20,
+        maptype='PROBING',
+        loadfactor=0.5)
 
     """
     Este indice crea un map cuya llave es el país del video
     """
     catalog['country'] = mp.newMap(
         20,
-        maptype=map_type,
-        loadfactor=load_factor)
+        maptype='PROBING',
+        loadfactor=0.5)
 
     return catalog
 
 
-# Funciones para creacion de datos
+# Funciones para agregar información al catalogo
 
 
 def addVideo(catalog, video):
+    """
+    La función de addVideo() adiciona los videos a una lista de videos,
+    a su vez los adiciona a los mapas de 'category' y de 'country'
+    """
     lt.addLast(catalog['videos'], video)
-    addCategoryFORMAP(catalog, video['category_id'], video)
-    addCountryFORMAP(catalog, video['country'], video)
+    addVideoOnMap(catalog, video['category_id'], video, 'category')
+    addVideoOnMap(catalog, video['country'], video, 'country')
 
 
 def addCategory(catalog, category):
@@ -115,55 +116,52 @@ def addCategory(catalog, category):
     La función de addCategory() adiciona una categoría a la
     lista de categorías
     """
-    c = newCategory(category)
+    c = newSeparator(category, 'category')
     lt.addLast(catalog['category_id'], c)
 
 
-def addCategoryFORMAP(catalog, c_id, video):
-    categories = catalog['category']
-    existcategory = mp.contains(categories, c_id)
-    if existcategory:
-        entry = mp.get(categories, c_id)
-        category = me.getValue(entry)
-    else:
-        category = newCategory(c_id)
-        mp.put(categories, c_id, category)
-    lt.addLast(category['videos'], video)
-
-
-def addCountryFORMAP(catalog, country_name, video):
-    countries = catalog['country']
-    existcountry = mp.contains(countries, country_name)
-    if existcountry:
-        entry = mp.get(countries, country_name)
-        country = me.getValue(entry)
-    else:
-        country = newCountry(country_name)
-        mp.put(countries, country_name, country)
-    lt.addLast(country['videos'], video)
-
-
-def newCategory(c_id):
-    category = {"c_id": "", "videos": None}
-    category['c_id'] = c_id
-    category['videos'] = lt.newList('ARRAY_LIST', None)
-    return category
-
-
-def newCountry(country_name):
+def addVideoOnMap(catalog, int_input, video, catalog_key):
     """
-    La función de newCountry() crea una nueva estructura para
-    modelar los videos a partir de los paises
+    La función de addVideoOnMap() adiciona el video al mapa
+    que se ha seleccionado.
+    Args:
+        catalog: Catalogo de videos
+        int_input: Llave a analizar
+        video: Video a añadir
+        catalog_key: Especifica cuál catalogo
     """
-    country = {'country_name': "", "videos": None}
-    country['country_name'] = country_name
-    country['videos'] = lt.newList('ARRAY_LIST', None)
-    return country
+    selected_map = catalog[catalog_key]
+    existkey = mp.contains(selected_map, int_input)
+    if existkey:
+        entry = mp.get(selected_map, int_input)
+        value = me.getValue(entry)
+    else:
+        value = newSeparator(int_input, catalog_key)
+        mp.put(selected_map, int_input, value)
+    lt.addLast(value['videos'], video)
 
 
-# Funciones para agregar informacion al catalogo
+def newSeparator(key, classifier):
+    """
+    La función de newSeparator() crea una nueva estructura
+    para modelar los mapas.
+    Args:
+        key: Llave del mapa
+        classifier: Especifica cuál mapa
+    """
+    if classifier == 'country':
+        separator = {"country_name": "", "videos": None}
+        separator['country_name'] = key
+        separator['videos'] = lt.newList('ARRAY_LIST', None)
+    elif classifier == 'category':
+        separator = {"c_id": "", "videos": None}
+        separator['c_id'] = key
+        separator['videos'] = lt.newList('ARRAY_LIST', None)
+    return separator
+
 
 # Funciones de consulta
+
 
 def getVideosByCriteriaList(catalog, criteria, x):
     """
@@ -182,7 +180,7 @@ def getVideosByCriteriaList(catalog, criteria, x):
 def getVideosByCriteriaMap(catalog, criteria, key):
     """
     La función de getVideosByCriteriaMap() filtra los videos por un
-    criterio específico dado un x. El catálogo debe ser un mapa.
+    criterio específico dado un key. El catálogo debe ser un mapa.
     """
     values = catalog[criteria]
     entry = mp.get(values, str(key))
@@ -191,102 +189,20 @@ def getVideosByCriteriaMap(catalog, criteria, key):
 
 
 def getVideosByCategoryAndCountry(catalog, category, country):
+    """
+    La función de getVideosByCriteriaMap() filtra los videos por una
+    llave y categoría específicas.
+    """
     sublist = getVideosByCriteriaMap(
         catalog, 'category', category).get('videos')
     sublist2 = getVideosByCriteriaList(sublist, 'country', country)
     return sortVideos(sublist2, lt.size(sublist2), 'cmpVideosByViews')
 
 
-def getMostTrendingDaysByIDv1(videos):
-    ids = mp.newMap(
-        500,
-        maptype='PROBING',
-        loadfactor=0.8)
-    pos = mp.newMap(
-        500,
-        maptype='PROBING',
-        loadfactor=0.8)
-    ids_list = lt.newList('ARRAY_LIST')
-
-    i = 1
-
-    while i <= lt.size(videos):
-        video_id = lt.getElement(videos, i).get('video_id')
-        presence = lt.isPresent(ids_list, video_id) != 0
-
-        if presence:
-            n = int(mp.get(ids, video_id).get('value'))
-            n += 1
-            mp.put(ids, video_id, n)
-        else:
-            mp.put(ids, video_id, 1)
-            mp.put(pos, video_id, i)
-            lt.addLast(ids_list, video_id)
-        i += 1
-
-    mayor = video_id
-    repeticiones_mayor = int(mp.get(ids, mayor).get('value'))
-
-    for each_id in lt.iterator(ids_list):
-        papi_juancho = int(mp.get(ids, each_id).get('value'))
-        if papi_juancho > repeticiones_mayor:
-            mayor = each_id
-            repeticiones_mayor = papi_juancho
-
-    position = mp.get(pos, mayor).get('value')
-    repetitions = mp.get(ids, mayor).get('value')
-    result = lt.getElement(videos, position)
-
-    return (result, repetitions)
-
-
-def getMostTrendingDaysByIDv2(videos):
-    ids = mp.newMap(
-        500,
-        maptype='PROBING',
-        loadfactor=0.8)
-    pos = mp.newMap(
-        500,
-        maptype='PROBING',
-        loadfactor=0.8)
-    ids_list = []
-
-    i = 1
-
-    while i <= lt.size(videos):
-        video_id = lt.getElement(videos, i).get('video_id')
-        presence = video_id in ids_list
-
-        if presence:
-            n = int(mp.get(ids, video_id).get('value'))
-            n += 1
-            mp.put(ids, video_id, n)
-        else:
-            mp.put(ids, video_id, 1)
-            mp.put(pos, video_id, i)
-            ids_list.append(video_id)
-        i += 1
-
-    mayor = video_id
-    repeticiones_mayor = int(mp.get(ids, mayor).get('value'))
-
-    for each_id in ids_list:
-        papi_juancho = int(mp.get(ids, each_id).get('value'))
-        if papi_juancho > repeticiones_mayor:
-            mayor = each_id
-            repeticiones_mayor = papi_juancho
-
-    position = mp.get(pos, mayor).get('value')
-    repetitions = mp.get(ids, mayor).get('value')
-    result = lt.getElement(videos, position)
-
-    return (result, repetitions)
-
-
 def getMostTrendingDaysByID(videos):
     """
-    La función de  getMostTrendingDaysByTitle itera la lista y devuelve el
-    elemento que más se repite
+    La función de  getMostTrendingDaysByID() itera la lista ordenada y
+    retorna el elemento que más se repite.
     """
     elemento = lt.firstElement(videos)
     mayor_titulo = None
@@ -344,19 +260,27 @@ def getVideosByTag(videos, tag):
 
 def videosSize(catalog):
     """
-    Número de libros en el catago
+    Número de videos en el catalogo
     """
     return lt.size(catalog['videos'])
 
 
 def categoriesSize(catalog):
     """
-    Numero de autores en el catalogo
+    Numero de categorias en el catalogo
     """
     return mp.size(catalog['category'])
 
 
+def countriesSize(catalog):
+    """
+    Numero de paises en el catalogo
+    """
+    return mp.size(catalog['country'])
+
+
 # Funciones utilizadas para comparar elementos dentro de una lista
+
 
 def cmpVideosByViews(video1, video2) -> bool:
     """
@@ -381,17 +305,14 @@ def comparetitles(video1, video2):
     """
     return (video1['title']) > (video2['title'])
 
+
 # Funciones de ordenamiento
 
 
 def sortVideos(catalog, size, cmp):
     """
-    La Función sortVideos() la usamos en varios requerimientos por la necesidad
-    de tener la información organizada. Por esto mismo, la función cuenta con
-    cuatro parámetros en donde destacan "cmp" y "sort_type". Para cada caso
-    particular, dejamos que según estos dos parámetros se invoque la función
-    correspondiente de la librería sort y usando los algoritmos de merge sort
-    y quick sort
+    La Función sortVideos() organiza los videos de acuerdo
+    al parámetro cmp.
     """
     sub_list = lt.subList(catalog, 0, size)
     sub_list = sub_list.copy()
@@ -407,3 +328,93 @@ def sortVideos(catalog, size, cmp):
     stop_time = time.process_time()
     elapsed_time_mseg = (stop_time - start_time)*1000
     return elapsed_time_mseg, sorted_list
+
+
+# Funciones que no se utilizan
+
+'''
+def getMostTrendingDaysByIDv2(videos):
+    ids = mp.newMap(
+        500,
+        maptype='PROBING',
+        loadfactor=0.8)
+    pos = mp.newMap(
+        500,
+        maptype='PROBING',
+        loadfactor=0.8)
+    ids_list = []
+
+    i = 1
+
+    while i <= lt.size(videos):
+        video_id = lt.getElement(videos, i).get('video_id')
+        presence = video_id in ids_list
+
+        if presence:
+            n = int(mp.get(ids, video_id).get('value'))
+            n += 1
+            mp.put(ids, video_id, n)
+        else:
+            mp.put(ids, video_id, 1)
+            mp.put(pos, video_id, i)
+            ids_list.append(video_id)
+        i += 1
+
+    mayor = video_id
+    repeticiones_mayor = int(mp.get(ids, mayor).get('value'))
+
+    for each_id in ids_list:
+        papi_juancho = int(mp.get(ids, each_id).get('value'))
+        if papi_juancho > repeticiones_mayor:
+            mayor = each_id
+            repeticiones_mayor = papi_juancho
+
+    position = mp.get(pos, mayor).get('value')
+    repetitions = mp.get(ids, mayor).get('value')
+    result = lt.getElement(videos, position)
+
+    return (result, repetitions)
+
+
+def getMostTrendingDaysByIDv1(videos):
+    ids = mp.newMap(
+        500,
+        maptype='PROBING',
+        loadfactor=0.8)
+    pos = mp.newMap(
+        500,
+        maptype='PROBING',
+        loadfactor=0.8)
+    ids_list = lt.newList('ARRAY_LIST')
+
+    i = 1
+
+    while i <= lt.size(videos):
+        video_id = lt.getElement(videos, i).get('video_id')
+        presence = lt.isPresent(ids_list, video_id) != 0
+
+        if presence:
+            n = int(mp.get(ids, video_id).get('value'))
+            n += 1
+            mp.put(ids, video_id, n)
+        else:
+            mp.put(ids, video_id, 1)
+            mp.put(pos, video_id, i)
+            lt.addLast(ids_list, video_id)
+        i += 1
+
+    mayor = video_id
+    repeticiones_mayor = int(mp.get(ids, mayor).get('value'))
+
+    for each_id in lt.iterator(ids_list):
+        papi_juancho = int(mp.get(ids, each_id).get('value'))
+        if papi_juancho > repeticiones_mayor:
+            mayor = each_id
+            repeticiones_mayor = papi_juancho
+
+    position = mp.get(pos, mayor).get('value')
+    repetitions = mp.get(ids, mayor).get('value')
+    result = lt.getElement(videos, position)
+
+    return (result, repetitions)
+'''

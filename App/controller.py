@@ -34,11 +34,11 @@ El controlador se encarga de mediar entre la vista y el modelo.
 # Inicialización del Catálogo de videos
 
 
-def initCatalog(map_type, load_factor):
+def initCatalog():
     """
     Llama la funcion de inicializacion del catalogo del modelo.
     """
-    catalog = model.newCatalog(map_type, load_factor)
+    catalog = model.newCatalog()
     return catalog
 
 
@@ -48,7 +48,7 @@ def initCatalog(map_type, load_factor):
 def loadData(catalog):
     """
     Carga los datos de los archivos y cargar los datos en la
-    estructura de datos
+    estructura de datos, a su vez mide el tiempo de ejecución
     """
     delta_time = -1.0
     delta_memory = -1.0
@@ -74,7 +74,7 @@ def loadVideos(catalog):
     """
     Carga los videos del archivo.
     """
-    videosfile = cf.data_dir + 'videos/videos-large.csv'
+    videosfile = cf.data_dir + 'videos/videos-small.csv'
     input_file = csv.DictReader(open(videosfile, encoding='utf-8'))
     for video in input_file:
         model.addVideo(catalog, video)
@@ -109,11 +109,24 @@ def categoriesSize(catalog):
     return model.categoriesSize(catalog)
 
 
+def countriesSize(catalog):
+    """
+    Numero de videos cargados al catalogo
+    """
+    return model.countriesSize(catalog)
+
+
 def getVideosByCountry(catalog, country):
+    '''
+    Retorna los videos de un país específico
+    '''
     return model.getVideosByCriteriaMap(catalog, 'country', country)
 
 
 def getMostTrendingDaysByID(catalog):
+    '''
+    Retorna los videos que más tiempo fueron tendencia
+    '''
     sorted_videos = model.sortVideos(
         catalog, lt.size(catalog), 'comparetitles')
     result = model.getMostTrendingDaysByID(sorted_videos[1])
@@ -121,10 +134,16 @@ def getMostTrendingDaysByID(catalog):
 
 
 def getVideosByCategory(catalog, category):
+    '''
+    Retorna los videos de una categoría específica
+    '''
     return model.getVideosByCriteriaMap(catalog, 'category', category)
 
 
 def getVideosByCountryAndTag(catalog, tag, country):
+    '''
+    Retorna los videos de un país y tag específicos
+    '''
     return model.getVideosByCountryAndTag(catalog, tag, country)
 
 
