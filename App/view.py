@@ -128,7 +128,7 @@ def print_list(x):
     '''
     Imprime la lista de paises
     '''
-    j = 0
+    j = 1
     printlist2 = []
     listing = mp.keySet(x['country'])
     while j <= int(loaded_countries):
